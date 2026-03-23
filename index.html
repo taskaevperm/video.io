@@ -4,111 +4,31 @@
     <title>Видео плеер</title>
     <style>
         body { margin: 0; background: #000; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        iframe { width: 90vw; height: 70vh; max-width: 1200px; }
+        video { max-width: 95vw; max-height: 95vh; }
+        button { position: fixed; top: 20px; left: 20px; padding: 10px; background: #4CAF50; color: white; border: none; cursor: pointer; }
     </style>
 </head>
 <body>
-    <!-- ОФИЦИАЛЬНЫЙ Яндекс плеер -->
-    <iframe src="https://disk.yandex.ru/i/embed?publish=GHbgNBARBEsI7w" 
-            frameborder="0" 
-            allowfullscreen>
-    </iframe>
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Видео ревью</title>
-    <style>
-        body { font-family: Arial; max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .video-section { margin: 20px 0; }
-        .yandex-player { 
-            position: relative; 
-            width: 100%; 
-            height: 0; 
-            padding-bottom: 56.25%; 
-            background: #000; 
-            border-radius: 8px; 
-            overflow: hidden; 
-        }
-        .yandex-player iframe { 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-        }
-        #comments { margin-top: 20px; }
-        .comment { 
-            padding: 12px; 
-            border: 1px solid #ddd; 
-            margin: 8px 0; 
-            cursor: pointer; 
-            background: #f8f9fa; 
-            border-radius: 5px; 
-        }
-        .comment:hover { background: #e9ecef; }
-        button { 
-            background: #28a745; 
-            color: white; 
-            padding: 12px 24px; 
-            border: none; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            font-size: 16px; 
-            margin: 10px 0; 
-        }
-        button:hover { background: #218838; }
-    </style>
-</head>
-<body>
-    <h1>🎬 Видео ревью</h1>
-    
-    <div class="video-section">
-        <h2>📺 Видео</h2>
-        <div class="yandex-player">
-            <iframe src="https://disk.yandex.ru/i/GHbgNBARBEsI7w" 
-                    allowfullscreen 
-                    webkitallowfullscreen 
-                    mozallowfullscreen>
-            </iframe>
-        </div>
-    </div>
-    
-    <button onclick="addComment()">📝 Добавить метку (укажи время вручную)</button>
-    <div id="comments">
-        <em>Поставь паузу в видео → укажи время → добавь комментарий</em>
-    </div>
+    <button onclick="getVideo()">▶️ Загрузить видео</button>
+    <video id="player" controls style="display:none"></video>
 
     <script>
-        let comments = JSON.parse(localStorage.getItem('video-comments') || '[]');
-        
-        function updateComments() {
-            const container = document.getElementById('comments');
-            if (comments.length === 0) {
-                container.innerHTML = '<em>Поставь паузу в видео → укажи время → добавь комментарий</em>';
-                return;
-            }
-            container.innerHTML = `<h3>📋 ${comments.length} меток:</h3>`;
-            comments.forEach((comment, i) => {
-                const div = document.createElement('div');
-                div.className = 'comment';
-                div.innerHTML = `<strong>${i+1}. ${comment.time}:</strong> ${comment.text}`;
-                container.appendChild(div);
-            });
-            localStorage.setItem('video-comments', JSON.stringify(comments));
+    async function getVideo() {
+        try {
+            const yandexUrl = 'https://disk.yandex.ru/i/GHbgNBARBEsI7w';
+            
+            // Запрос к Яндекс API за прямой ссылкой
+            const apiUrl = `https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key=${encodeURIComponent(yandexUrl)}`;
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+            
+            document.getElementById('player').src = data.href;
+            document.getElementById('player').style.display = 'block';
+            document.querySelector('button').style.display = 'none';
+        } catch(e) {
+            alert('Ошибка загрузки. Проверь ссылку.');
         }
-        
-        function addComment() {
-            const time = prompt('⏰ Время метки (например 1:23, 0:45, 5:12):');
-            const text = prompt('💬 Комментарий:');
-            if (time && text && time.trim()) {
-                comments.push({ time: time.trim(), text: text.trim() });
-                comments.sort((a, b) => a.time.localeCompare(b.time));
-                updateComments();
-            }
-        }
-        
-        updateComments();
+    }
     </script>
 </body>
 </html>
-
