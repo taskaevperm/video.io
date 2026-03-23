@@ -4,64 +4,90 @@
     <title>Видео ревью</title>
     <style>
         body { font-family: Arial; max-width: 1200px; margin: 0 auto; padding: 20px; }
-        video { width: 100%; height: 500px; background: #000; }
+        .video-section { margin: 20px 0; }
+        .yandex-player { 
+            position: relative; 
+            width: 100%; 
+            height: 0; 
+            padding-bottom: 56.25%; 
+            background: #000; 
+            border-radius: 8px; 
+            overflow: hidden; 
+        }
+        .yandex-player iframe { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+        }
         #comments { margin-top: 20px; }
-        .comment { padding: 12px; border: 1px solid #ddd; margin: 8px 0; cursor: pointer; background: #f8f9fa; border-radius: 5px; }
+        .comment { 
+            padding: 12px; 
+            border: 1px solid #ddd; 
+            margin: 8px 0; 
+            cursor: pointer; 
+            background: #f8f9fa; 
+            border-radius: 5px; 
+        }
         .comment:hover { background: #e9ecef; }
-        button { background: #28a745; color: white; padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin: 10px 0; }
+        button { 
+            background: #28a745; 
+            color: white; 
+            padding: 12px 24px; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            margin: 10px 0; 
+        }
         button:hover { background: #218838; }
     </style>
 </head>
 <body>
     <h1>🎬 Видео ревью</h1>
-    <video id="player" controls preload="metadata">
-        <source src="https://downloader.disk.yandex.ru/disk/UDROuFcltH69xQ?dl=1" type="video/mp4">
-        <source src="https://disk.yandex.ru/i/UDROuFcltH69xQ" type="video/mp4">
-        Ваш браузер не поддерживает видео.
-    </video>
     
-    <button onclick="addComment()">📝 Добавить метку здесь → <span id="current-time">0:00</span></button>
-    <div id="comments"><em>Поставь на паузу → жми кнопку → пиши комментарий</em></div>
+    <div class="video-section">
+        <h2>📺 Видео</h2>
+        <div class="yandex-player">
+            <iframe src="https://disk.yandex.ru/i/GHbgNBARBEsI7w" 
+                    allowfullscreen 
+                    webkitallowfullscreen 
+                    mozallowfullscreen>
+            </iframe>
+        </div>
+    </div>
+    
+    <button onclick="addComment()">📝 Добавить метку (укажи время вручную)</button>
+    <div id="comments">
+        <em>Поставь паузу в видео → укажи время → добавь комментарий</em>
+    </div>
 
     <script>
         let comments = JSON.parse(localStorage.getItem('video-comments') || '[]');
-        const player = document.getElementById('player');
-        const timeDisplay = document.getElementById('current-time');
-        
-        player.ontimeupdate = () => {
-            timeDisplay.textContent = formatTime(player.currentTime);
-        };
-        
-        function formatTime(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
         
         function updateComments() {
             const container = document.getElementById('comments');
-            container.innerHTML = comments.length ? `<h3>📋 ${comments.length} меток:</h3>` : '<em>Поставь на паузу → жми кнопку → пиши комментарий</em>';
+            if (comments.length === 0) {
+                container.innerHTML = '<em>Поставь паузу в видео → укажи время → добавь комментарий</em>';
+                return;
+            }
+            container.innerHTML = `<h3>📋 ${comments.length} меток:</h3>`;
             comments.forEach((comment, i) => {
                 const div = document.createElement('div');
                 div.className = 'comment';
                 div.innerHTML = `<strong>${i+1}. ${comment.time}:</strong> ${comment.text}`;
-                div.onclick = () => player.currentTime = parseTime(comment.time);
                 container.appendChild(div);
             });
             localStorage.setItem('video-comments', JSON.stringify(comments));
         }
         
-        function parseTime(timeStr) {
-            const [mins, secs] = timeStr.split(':').map(Number);
-            return mins * 60 + secs;
-        }
-        
         function addComment() {
-            const time = timeDisplay.textContent;
-            const text = prompt(`Метка на ${time}:\n\nКомментарий:`);
-            if (text && text.trim()) {
-                comments.push({ time, text: text.trim() });
-                comments.sort((a, b) => parseTime(a.time) - parseTime(b.time));
+            const time = prompt('⏰ Время метки (например 1:23, 0:45, 5:12):');
+            const text = prompt('💬 Комментарий:');
+            if (time && text && time.trim()) {
+                comments.push({ time: time.trim(), text: text.trim() });
+                comments.sort((a, b) => a.time.localeCompare(b.time));
                 updateComments();
             }
         }
@@ -70,3 +96,4 @@
     </script>
 </body>
 </html>
+
