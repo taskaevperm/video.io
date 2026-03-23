@@ -4,7 +4,7 @@
     <title>Видео ревью</title>
     <style>
         body { font-family: Arial; max-width: 1200px; margin: 0 auto; padding: 20px; }
-        iframe { width: 100%; height: 500px; border: none; }
+        #video-link { font-size: 24px; word-break: break-all; background: #f0f8ff; padding: 15px; border-radius: 8px; margin: 20px 0; }
         #comments { margin-top: 20px; }
         .comment { padding: 12px; border: 1px solid #ddd; margin: 8px 0; cursor: pointer; background: #f8f9fa; border-radius: 5px; }
         .comment:hover { background: #e9ecef; }
@@ -14,42 +14,38 @@
 </head>
 <body>
     <h1>🎬 Видео ревью</h1>
-    <iframe src="https://disk.yandex.ru/i/UDROuFcltH69xQ" allowfullscreen></iframe>
+    <div id="video-link">
+        <strong>📺 Открой видео:</strong><br>
+        <a href="https://disk.yandex.ru/i/UDROuFcltH69xQ" target="_blank">https://disk.yandex.ru/i/UDROuFcltH69xQ</a>
+    </div>
     
-    <button onclick="addComment()">📝 Добавить метку (время вручную)</button>
-    <div id="comments"><em>Метки появятся здесь... Введите время вручную (например 1:23)</em></div>
+    <button onclick="addComment()">📝 Добавить метку</button>
+    <div id="comments"><em>Метки появятся здесь...</em></div>
 
     <script>
         let comments = JSON.parse(localStorage.getItem('video-comments') || '[]');
         
-        function formatTime(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
-        
         function updateComments() {
             const container = document.getElementById('comments');
             if (comments.length === 0) {
-                container.innerHTML = '<em>Метки появятся здесь... Введите время вручную (например 1:23)</em>';
+                container.innerHTML = '<em>Метки появятся здесь... (пауза → время → комментарий)</em>';
                 return;
             }
-            container.innerHTML = '';
+            container.innerHTML = `<h3>📋 ${comments.length} меток:</h3>`;
             comments.forEach((comment, i) => {
                 const div = document.createElement('div');
                 div.className = 'comment';
-                div.innerHTML = `<strong>${comment.time}:</strong> ${comment.text}`;
-                div.onclick = () => alert(`Перейди к ${comment.time} в видео`);
+                div.innerHTML = `<strong>${i+1}. ${comment.time}:</strong> ${comment.text}`;
                 container.appendChild(div);
             });
             localStorage.setItem('video-comments', JSON.stringify(comments));
         }
         
         function addComment() {
-            const time = prompt('Время метки (например 1:23 или 45):');
-            const text = prompt('Комментарий:');
-            if (time && text) {
-                comments.push({ time, text: text.trim() });
+            const time = prompt('⏰ Время (например: 1:23, 0:45, 5:12):');
+            const text = prompt('💬 Комментарий:');
+            if (time && text && time.trim()) {
+                comments.push({ time: time.trim(), text: text.trim() });
                 comments.sort((a, b) => a.time.localeCompare(b.time));
                 updateComments();
             }
@@ -59,4 +55,3 @@
     </script>
 </body>
 </html>
-
